@@ -1,6 +1,7 @@
 import { Enemy } from '../entities/Enemy';
 import { EnemyType, WaveConfig } from '../core/types';
 import { BezierCurve } from '../geometry/BezierCurve';
+import { LocalStorageManager } from '../storage/LocalStorage';
 
 /**
  * Manages enemy waves and spawning
@@ -22,6 +23,9 @@ export class WaveManager {
   private maxEnemies: number;
   private baseSpawnDelay: number;
   private spawnDelayReduction: number;
+
+  // Custom sprite cache
+  private customSpriteCache: Map<EnemyType, ImageBitmap>;
 
   constructor(
     canvasWidth: number,
@@ -49,6 +53,32 @@ export class WaveManager {
     this.maxEnemies = config.maxEnemies;
     this.baseSpawnDelay = config.baseSpawnDelay;
     this.spawnDelayReduction = config.spawnDelayReduction;
+
+    this.customSpriteCache = new Map();
+  }
+
+  /**
+   * Preload all custom sprites from localStorage
+   * Should be called during game initialization
+   */
+  async preloadCustomSprites(): Promise<void> {
+    const enemyTypes = [
+      EnemyType.SQUARE,
+      EnemyType.PENTAGON,
+      EnemyType.HEXAGON,
+      EnemyType.HEPTAGON,
+      EnemyType.OCTAGON,
+    ];
+
+    // Load all custom sprites in parallel
+    const loadPromises = enemyTypes.map(async (type) => {
+      const image = await LocalStorageManager.loadCustomSpriteImage(type);
+      if (image) {
+        this.customSpriteCache.set(type, image);
+      }
+    });
+
+    await Promise.all(loadPromises);
   }
 
   /**
@@ -161,7 +191,10 @@ export class WaveManager {
     const sizeMultiplier = 1 + Math.min(0.5, waveNumber * 0.05);
     const enemySize = this.baseEnemySize * sizeMultiplier;
 
-    return new Enemy(type, enemySize, curve);
+    // Get custom sprite from cache if available
+    const customImage = this.customSpriteCache.get(type) || null;
+
+    return new Enemy(type, enemySize, curve, customImage);
   }
 
   /**
