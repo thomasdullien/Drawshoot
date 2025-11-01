@@ -70,15 +70,20 @@ export class WaveManager {
       EnemyType.OCTAGON,
     ];
 
+    // Clear existing cache to reload fresh sprites
+    this.customSpriteCache.clear();
+
     // Load all custom sprites in parallel
     const loadPromises = enemyTypes.map(async (type) => {
       const image = await LocalStorageManager.loadCustomSpriteImage(type);
       if (image) {
         this.customSpriteCache.set(type, image);
+        console.log(`Loaded custom sprite for enemy type ${type} (${type}-sided polygon)`);
       }
     });
 
     await Promise.all(loadPromises);
+    console.log(`Total custom sprites loaded: ${this.customSpriteCache.size}`);
   }
 
   /**
@@ -193,6 +198,9 @@ export class WaveManager {
 
     // Get custom sprite from cache if available
     const customImage = this.customSpriteCache.get(type) || null;
+    if (customImage) {
+      console.log(`Spawning enemy type ${type} with custom sprite`);
+    }
 
     return new Enemy(type, enemySize, curve, customImage);
   }
