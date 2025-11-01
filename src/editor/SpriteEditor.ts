@@ -294,13 +294,55 @@ export class SpriteEditor {
    * Save current sprite
    */
   saveCurrentSprite(): void {
-    // Get canvas data as base64
-    const dataURL = this.canvas.toDataURL('image/png');
+    // Create a temporary canvas to save only the user's drawing (without background)
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = this.canvas.width;
+    tempCanvas.height = this.canvas.height;
+    const tempCtx = tempCanvas.getContext('2d');
+
+    if (!tempCtx) {
+      console.error('Failed to create temporary canvas for saving');
+      return;
+    }
+
+    // Get the main canvas image data
+    const mainImageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+    const bgImageData = this.backgroundCtx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+
+    // Create new image data for the result
+    const resultImageData = tempCtx.createImageData(this.canvas.width, this.canvas.height);
+
+    // Copy pixels that are different from the background (i.e., user-drawn content)
+    for (let i = 0; i < mainImageData.data.length; i += 4) {
+      const mainR = mainImageData.data[i] ?? 0;
+      const mainG = mainImageData.data[i + 1] ?? 0;
+      const mainB = mainImageData.data[i + 2] ?? 0;
+      const mainA = mainImageData.data[i + 3] ?? 0;
+
+      const bgR = bgImageData.data[i] ?? 0;
+      const bgG = bgImageData.data[i + 1] ?? 0;
+      const bgB = bgImageData.data[i + 2] ?? 0;
+
+      // If pixel is different from background, keep it
+      if (mainR !== bgR || mainG !== bgG || mainB !== bgB || mainA !== 255) {
+        resultImageData.data[i] = mainR;
+        resultImageData.data[i + 1] = mainG;
+        resultImageData.data[i + 2] = mainB;
+        resultImageData.data[i + 3] = mainA;
+      }
+      // Otherwise leave it transparent (default is 0,0,0,0)
+    }
+
+    // Put the result on the temporary canvas
+    tempCtx.putImageData(resultImageData, 0, 0);
+
+    // Get canvas data as base64 from the temporary canvas
+    const dataURL = tempCanvas.toDataURL('image/png');
 
     // Save to local storage
     LocalStorageManager.saveCustomSprite(this.currentShape, dataURL);
 
-    console.log(`Saved custom sprite for ${this.currentShape}-sided polygon`);
+    console.log(`Saved custom sprite for ${this.currentShape}-sided polygon (with transparent background)`);
   }
 
   /**
