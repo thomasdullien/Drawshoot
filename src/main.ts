@@ -67,6 +67,9 @@ class App {
     // Create game engine
     this.gameEngine = new GameEngine(canvas, config);
 
+    // Initialize async resources (custom sprites)
+    await this.gameEngine.initialize();
+
     // Create sprite editor
     const editorCanvas = document.getElementById('editorCanvas') as HTMLCanvasElement;
     this.spriteEditor = new SpriteEditor(editorCanvas);
@@ -129,7 +132,7 @@ class App {
     // Restart button
     const restartButton = document.getElementById('restartButton');
     if (restartButton) {
-      restartButton.addEventListener('click', () => {
+      restartButton.addEventListener('click', async () => {
         if (this.gameEngine) {
           this.gameEngine.destroy();
           const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -173,6 +176,7 @@ class App {
           };
 
           this.gameEngine = new GameEngine(canvas, config);
+          await this.gameEngine.initialize();
           this.gameEngine.start();
 
           if (pauseButton) {

@@ -175,6 +175,14 @@ export class GameEngine {
   }
 
   /**
+   * Initialize async resources (e.g., custom sprites)
+   * Should be called before start()
+   */
+  async initialize(): Promise<void> {
+    await this.waveManager.preloadCustomSprites();
+  }
+
+  /**
    * Start the game loop
    */
   start(): void {
