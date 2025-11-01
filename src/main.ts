@@ -198,7 +198,7 @@ class App {
     }
   }
 
-  private toggleEditorMode(): void {
+  private async toggleEditorMode(): Promise<void> {
     this.isEditorMode = !this.isEditorMode;
 
     const editorMode = document.getElementById('editorMode');
@@ -223,8 +223,10 @@ class App {
         this.spriteEditor.init();
       }
     } else {
-      // Exit editor mode
+      // Exit editor mode - reload sprites to pick up any changes
       if (this.gameEngine) {
+        await this.gameEngine.initialize(); // Reload custom sprites
+
         const isPaused = this.gameEngine.getGameState().isPaused;
         if (isPaused) {
           this.gameEngine.togglePause();
