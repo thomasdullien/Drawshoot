@@ -161,8 +161,8 @@ export class SpriteEditor {
    * Draw the background shape (default polygon)
    */
   private drawBackground(): void {
-    this.backgroundCtx.fillStyle = '#FFF';
-    this.backgroundCtx.fillRect(0, 0, this.backgroundCanvas.width, this.backgroundCanvas.height);
+    // Clear to transparent instead of white
+    this.backgroundCtx.clearRect(0, 0, this.backgroundCanvas.width, this.backgroundCanvas.height);
 
     // Draw polygon outline
     const centerX = this.backgroundCanvas.width / 2;
